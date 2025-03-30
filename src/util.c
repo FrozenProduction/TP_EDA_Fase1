@@ -49,7 +49,7 @@ Mapa* carregarMapa(const char* filename) {
 /**
  * @brief Liberta a memória alocada para um mapa
  * 
- * @param mapa Ponteiro para a estrutura Mapa a libertar
+ * @param mapa Apontador para a estrutura Mapa a libertar
  * 
  * @note Liberta toda a memória associada à matriz
  */
@@ -67,7 +67,7 @@ void liberarMapa(Mapa* mapa) {
  * @brief Extrai antenas de um mapa e adiciona-as a uma lista ligada
  * 
  * @param filename Nome do ficheiro contendo o mapa
- * @param[out] lista Ponteiro para a lista ligada de destino
+ * @param[out] lista Apontador para a lista ligada de destino
  * 
  * @note Ignora caracteres '.' (posições vazias)
  * @note Mantém as coordenadas originais (linha, coluna)
