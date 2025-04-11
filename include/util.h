@@ -1,77 +1,56 @@
 /**
  * @file util.h
- * @brief Funções utilitárias para manipulação de mapas e antenas (Projeto EDA - Fase 1)
+ * @brief Utilitários para manipulação de mapas e antenas usando listas ligadas
+ * 
+ * @details Contém funções auxiliares para:
+ * - Carregamento de mapas de ficheiros para estruturas de dados
+ * - Visualização gráfica do estado atual do sistema
+ * - Operações de I/O específicas do domínio
  * 
  * @author Diogo Pereira
- * @date 30/03/2025
- * @version 1.0
+ * @date 11/04/2025
+ * @version 1.1
  * 
- * @course Licenciatura em Engenharia de Sistemas Informáticos EST-IPCA
+ * @copyright Copyright (c) 2025
  * 
- * Contém as definições e funções para:
- * - Carregamento/libertação de mapas
- * - Processamento de ficheiros de entrada/saída
- * - Conversão entre estruturas de dados
+ * @course Licenciatura em Engenharia de Sistemas Informáticos
+ * @institution EST-IPCA
  */
 
-#ifndef UTIL_H
-#define UTIL_H
-
-#include "lista_ligada.h"  // Necessário para acessar Antena
-
+ #ifndef UTIL_H
+ #define UTIL_H
+ 
+ #include "funcoes.h"
+ 
 /**
- * @brief Estrutura que representa um mapa bidimensional de antenas.
+ * @brief Carrega antenas de um ficheiro de mapa para uma lista ligada
  * 
- * @details Armazena uma matriz de caracteres que representa:
- * - '.' para posições vazias
- * - Caracteres alfanuméricos para antenas
- * - '#' para efeitos nefastos (em mapas processados)
- */
-
-typedef struct {
-    int linhas, colunas;
-    char **matriz;
-} Mapa;
-
-/**
- * @brief Carrega um mapa a partir de um ficheiro de texto.
- * 
- * @param filename Nome do ficheiro contendo o mapa
- * @return Mapa* Estrutura alocada com o mapa carregado
+ * @param[in] filename Caminho do ficheiro contendo o mapa
+ * @param[out] linhas Apontador para armazenar número de linhas do mapa
+ * @param[out] colunas Apontador para armazenar número de colunas do mapa
+ * @return Antena* Lista ligada contendo as antenas carregadas
  * 
  * @note Formato esperado do ficheiro:
  *       Linha 1: "<linhas> <colunas>"
- *       Linhas seguintes: linhas do mapa ('.' para vazio, caracteres para antenas)
- *       Exemplo de ficheiro válido:
- *       3 3
- *       .A.
- *       ..0
- *       ...
- */
-Mapa* carregarMapa(const char* filename);
-
-/**
- * @brief Liberta a memória alocada para um mapa.
+ *       Linhas seguintes: linhas do mapa ('.' para vazio, outros chars para antenas)
  * 
- * @param mapa Apontador para a estrutura Mapa a libertar
+ * @note Caracteres inválidos são tratados como espaços vazios
  */
-void liberarMapa(Mapa* mapa);
-
+Antena* carregarAntenasDoMapa(const char* filename, int* linhas, int* colunas);
+ 
 /**
- * @brief Carrega antenas de um ficheiro para uma lista ligada.
+ * @brief Exibe representação visual do mapa com antenas e efeitos
  * 
- * @param filename Nome do ficheiro contendo o mapa
- * @param[out] lista Apontador para a lista ligada de destino
- */
-void carregarAntenasDoMapa(const char* filename, Antena** lista);
-
-/**
- * @brief Salva um mapa com marcações de efeitos nefastos.
+ * @param[in] antenas Lista de antenas a exibir
+ * @param[in] efeitos Lista de efeitos nefastos a exibir (pode ser NULL)
+ * @param[in] linhas Número total de linhas do mapa
+ * @param[in] colunas Número total de colunas do mapa
  * 
- * @param filename Nome do ficheiro de saída
- * @param mapa Estrutura Mapa original
- * @param efeitos Lista de posições com efeitos nefastos
+ * @note Prioridade de exibição:
+ *       1. Antenas normais
+ *       2. Efeitos nefastos
+ *       3. Espaços vazios ('.')
  */
-void salvarMapaComEfeitos(const char* filename, Mapa* mapa, Antena* efeitos);
-
-#endif // UTIL_H
+void imprimirMapa(Antena* antenas, Antena* efeitos, int linhas, int colunas);
+ 
+ #endif // UTIL_H

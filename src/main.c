@@ -1,105 +1,85 @@
 /**
  * @file main.c
- * @brief Programa principal do Projeto EDA - Fase 1
+ * @brief Programa principal para gestão de antenas com listas ligadas
+ * 
+ * @details Demonstração completa das funcionalidades implementadas para:
+ * - Carregamento e processamento de mapas de antenas
+ * - Cálculo e visualização de efeitos de interferência
+ * - Operações CRUD (Create, Read, Update, Delete) sobre a estrutura de dados
  * 
  * @author Diogo Pereira
- * @date 30/03/2025
- * @version 1.0
+ * @date 11/04/2025
+ * @version 1.1
  * 
- * @course Licenciatura em Engenharia de Sistemas Informáticos EST-IPCA
+ * @copyright Copyright (c) 2025
  * 
- * Demonstração das funcionalidades implementadas para:
- * - Gestão de antenas via listas ligadas
- * - Cálculo de efeitos nefastos
- * - Manipulação de mapas
+ * @course Licenciatura em Engenharia de Sistemas Informáticos
+ * @institution EST-IPCA
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "lista_ligada.h"
-#include "util.h"
-
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include "funcoes.h"
+ #include "util.h"
+ 
 /**
- * @brief Função principal do programa
+ * @brief Ponto de entrada do programa
  * 
- * @note Fluxo do programa:
- *       1. Carrega mapa inicial
- *       2. Processa antenas existentes
- *       3. Calcula e mostra efeitos nefastos
- *       4. Salva/recarrega mapa com efeitos
- *       5. Demonstra operações de inserção/remoção
+ * @return int Código de saída (0 para sucesso)
+ * 
+ * @note Fluxo de execução:
+ * 1. [FASE 1] Carregamento inicial do mapa
+ * 2. [FASE 2] Processamento das antenas existentes
+ * 3. [FASE 3] Cálculo de zonas de interferência
+ * 4. [FASE 4] Operações de inserção manual
+ * 5. [FASE 5] Operações de remoção manual/automática
+ * 6. [FASE 6] Visualização final do estado do sistema
+ * 
+ * @see funcoes.h para detalhes das operações implementadas
+ * @see util.h para funções auxiliares de I/O
  */
-int main() {
-    // Inicialização da lista de antenas
-    Antena* lista = NULL;
-    
-    // Fase 1: Carregamento do mapa principal
-    Mapa* mapa = carregarMapa("mapa.txt");
-    if (mapa) {
-        printf("\nMapa carregado:\n");
-        for (int i = 0; i < mapa->linhas; i++) {
-            printf("%s\n", mapa->matriz[i]);
-        }
-    } else {
-        printf("\nErro ao carregar o mapa.\n");
-    }
+ int main() {
+     /* Estruturas de dados principais */
+     Antena* lista = NULL;    ///< Lista principal de antenas
+     Antena* efeitos = NULL;  ///< Lista de zonas de interferência
+     int linhas, colunas;     ///< Dimensões do mapa
+     
+     // Fase 1: Carregamento do mapa principal
+     lista = carregarAntenasDoMapa("mapa.txt", &linhas, &colunas);
+     printf("\nMapa Carregado:\n");
+     imprimirMapa(lista, NULL, linhas, colunas);
+ 
+     // Fase 2: Extração de antenas do mapa
+     printf("\nAntenas Carregadas do Mapa:\n");
+     imprimirAntenas(lista);
+ 
+     // Fase 3: Cálculo de efeitos nefastos
+     efeitos = calcularEfeitoNefasto(lista);
+     printf("\nLocalizacoes com Efeitos Nefasto:\n");
+     imprimirAntenas(efeitos);
+     printf("\nMapa Carregado com Efeitos Nefasto:\n");
+     imprimirMapa(lista, efeitos, linhas, colunas);
+ 
+     // Fase 4: Inserção de Antenas
+     lista = inserirAntena(lista, '0', 2, 3);
+     lista = inserirAntena(lista, 'A', 6, 5);
+     lista = inserirAntena(lista, '0', 8, 2);
+     lista = inserirAntena(lista, '0', 10, 10);
+     printf("\nAntenas apos Insercao:\n");
+     imprimirAntenas(lista);
 
-    // Fase 2: Extração de antenas do mapa
-    carregarAntenasDoMapa("mapa.txt", &lista);
-    printf("\nAntenas carregadas do mapa:\n");
-    imprimirAntenas(lista);
+     // 4.1: Remoção automática por efeitos
+     lista = removerAntenasEmEfeitos(lista, efeitos);
+ 
+     // Fase 5: Remoção de Antenas
+     lista = removerAntena(lista, 6, 5);
+     printf("\nAntenas apos Remocao:\n");
+     imprimirAntenas(lista);
 
-    // Fase 3: Cálculo de efeitos nefastos
-    Antena* efeitos = calcularEfeitoNefasto(lista);
-    printf("\nLocalizacoes com efeito nefasto:\n");
-    imprimirAntenas(efeitos);
-
-    // Fase 4: Salvar e carregar mapa com efeitos
-    salvarMapaComEfeitos("mapaefeitos.txt", mapa, efeitos);
-
-    printf("\nMapa com efeito nefasto carregado:\n");
-    Mapa* mapa_com_efeitos = carregarMapa("mapaefeitos.txt");
-    if (mapa_com_efeitos) {
-        for (int i = 0; i < mapa_com_efeitos->linhas; i++) {
-            printf("%s\n", mapa_com_efeitos->matriz[i]);
-        }
-        liberarMapa(mapa_com_efeitos);
-    } else {
-        printf("Erro ao carregar mapaefeitos.txt\n");
-    }
-
-    // Fase 5: Inserção de Antenas
-    inserirAntena(&lista, 'O', 3, 2);
-    inserirAntena(&lista, 'A', 5, 6);
-    inserirAntena(&lista, 'O', 2, 8);
-    inserirAntena(&lista, 'O', 0, 11);
-    inserirAntena(&lista, 'O', 10, 10);
-
-    printf("\nAntenas apos insercao:\n");
-    imprimirAntenas(lista);
-
-    // 5.1: Remoção automática por efeitos
-    Antena* ant = lista;
-    while (ant != NULL) {
-        if (ant->frequencia != '#' && existeNaLista(efeitos, ant->x, ant->y)) {
-            printf("[REMOVIDO] Antena %c em (%d,%d) em localizacao de efeito nefasto\n", 
-               ant->frequencia, ant->x, ant->y);
-            Antena* proximo = ant->prox;
-            removerAntena(&lista, ant->x, ant->y);
-            ant = proximo;
-        } else {
-            ant = ant->prox;
-        }
-    }
-
-    // Fase 6: Remoção de Antenas
-    removerAntena(&lista, 5, 6);
-    removerAntena(&lista, 2, 8);
-    printf("\nAntenas apos remocao:\n");
-    imprimirAntenas(lista);
-
-    // Liberação de recursos
-    liberarMapa(mapa);
-
-    return 0;
-}
+     // Fase 6: Carregamento do mapa final
+     //efeitos = calcularEfeitoNefasto(lista);
+     printf("\nMapa Final:\n");
+     imprimirMapa(lista, efeitos, linhas, colunas);
+ 
+     return 0;
+ }

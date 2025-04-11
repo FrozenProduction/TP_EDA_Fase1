@@ -1,0 +1,270 @@
+\documentclass[a4paper,12pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[portuguese]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{subfigure}
+\usepackage{setspace}
+\geometry{a4paper, margin=2.5cm}
+
+\title{%
+  \textbf{Relatório do Projeto de Estruturas de Dados Avançadas}\\[2em]
+  \large Sistema de Gestão de Antenas com Deteção de Interferências\\[2em]
+  Licenciatura em Engenharia de Sistemas Informáticos -- 2024/25
+}
+\author{31513 - Diogo Pereira}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Este relatório apresenta o desenvolvimento de um sistema para gestão de antenas e deteção de interferências electromagnéticas, implementado em C utilizando listas ligadas. O trabalho aborda a problemática da interferência em ambientes urbanos densos, propondo uma solução eficiente baseada em estruturas dinâmicas. O sistema desenvolvido permite carregar mapas de antenas, identificar automaticamente zonas de interferência e realizar operações de gestão com complexidade ótima. A implementação segue princípios de modularidade e documentação rigorosa, com validação através de casos de teste representativos. Os resultados demonstram a eficácia da abordagem na identificação de padrões complexos de interferência com complexidade O(n²), adequada para cenários de média dimensão.
+\end{abstract}
+
+\tableofcontents
+
+\chapter{Introdução}
+\section{Motivação}
+O crescimento exponencial de sistemas de comunicação sem fios em ambientes urbanos tem originado desafios complexos na gestão do espectro radioelétrico. A interferência electromagnética entre antenas constitui um problema crítico que afeta a qualidade dos serviços de telecomunicações. Neste contexto, torna-se essencial o desenvolvimento de ferramentas computacionais eficientes para modelagem e análise destes fenómenos.
+
+\section{Enquadramento}
+Este trabalho foi desenvolvido no âmbito da unidade curricular de Estruturas de Dados Avançadas do curso de Licenciatura em Engenharia de Sistemas Informáticos. O projeto visa aplicar conceitos de estruturas dinâmicas na resolução de um problema real de gestão de infraestruturas de telecomunicações, com particular enfoque na eficiência algorítmica.
+
+\section{Objetivos}
+Os principais objetivos do trabalho são:
+\begin{itemize}
+    \item Modelar uma rede de antenas através de listas ligadas
+    \item Implementar algoritmos de deteção de interferência com complexidade controlada
+    \item Desenvolver um sistema modular para gestão dinâmica de antenas
+    \item Validar a solução com cenários realistas de diferentes dimensões
+\end{itemize}
+
+\section{Metodologia}
+A abordagem seguida baseou-se no ciclo de desenvolvimento ágil:
+\begin{enumerate}
+    \item Análise de requisitos e modelagem teórica
+    \item Projeto da estrutura de dados e algoritmos
+    \item Implementação incremental com testes unitários
+    \item Validação experimental com diferentes cenários
+    \item Otimização e documentação final
+\end{enumerate}
+
+\chapter{Estado da Arte}
+\section{Conceitos Fundamentais}
+A gestão de interferência entre antenas baseia-se em princípios de propagação electromagnética e geometria analítica. O efeito nefasto ocorre quando duas antenas da mesma frequência estão alinhadas numa relação geométrica específica, criando padrões de interferência destrutiva.
+
+\section{Soluções Existentes}
+As abordagens existentes para deteção de interferência incluem:
+\begin{itemize}
+    \item Sistemas baseados em matrizes estáticas
+    \item Algoritmos de força bruta com complexidade O(n³)
+    \item Soluções comerciais de simulação electromagnética
+\end{itemize}
+
+A Tabela \ref{tab:comparativo} apresenta uma análise comparativa das diferentes abordagens.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Abordagem} & \textbf{Vantagens} & \textbf{Limitações} \\
+\midrule
+Matrizes estáticas & Simplicidade & Ineficiência em grandes conjuntos \\
+Força bruta & Precisão & Complexidade inadequada \\
+Listas ligadas & Eficiência espacial & Implementação complexa \\
+\bottomrule
+\end{tabular}
+\caption{Comparação de abordagens para gestão de interferência}
+\label{tab:comparativo}
+\end{table}
+
+\chapter{Trabalho Desenvolvido}
+Este capítulo descreve detalhadamente a análise, especificação e implementação do sistema desenvolvido, seguindo os princípios de engenharia de software.
+
+\section{Análise e Especificação}
+O sistema foi especificado considerando os seguintes requisitos funcionais críticos:
+\begin{itemize}
+    \item Carregamento dinâmico de mapas com diferentes dimensões
+    \item Deteção precisa de padrões de interferência
+    \item Gestão eficiente de operações CRUD sobre antenas
+    \item Visualização clara do estado do sistema
+\end{itemize}
+
+A estrutura de dados principal consiste numa lista ligada ordenada por coordenadas, otimizada para:
+\begin{itemize}
+    \item Inserções/remoções em O(n)
+    \item Consultas espaciais eficientes
+    \item Redução de complexidade para deteção de interferência
+\end{itemize}
+
+\section{Implementação}
+O sistema foi implementado em C seguindo princípios de modularização, com a seguinte estrutura:
+
+\begin{itemize}
+    \item \texttt{funcoes.h/c} - Núcleo das operações sobre listas ligadas
+    \item \texttt{util.h/c} - Manipulação de ficheiros e visualização
+    \item \texttt{main.c} - Lógica de controlo e interface
+\end{itemize}
+
+\subsection{Estruturas de Dados}
+A estrutura central é definida como:
+
+\begin{lstlisting}[language=C]
+typedef struct Antena {
+    char frequencia;     // Caracter da frequencia
+    int x;               // Coordenada X (0-based)
+    int y;               // Coordenada Y (0-based)
+    struct Antena *prox; // Proximo elemento
+} Antena;
+\end{lstlisting}
+
+Esta estrutura permite representar tanto antenas como zonas de interferência, mantendo a consistência de dados.
+
+\subsection{Algoritmos Chave}
+O algoritmo de deteção de interferências implementa uma estratégia de força bruta otimizada:
+
+A implementação utiliza aninhamento de ciclos para comparar pares de antenas:
+
+\begin{lstlisting}[language=C]
+Antena* calcularEfeitoNefasto(Antena* lista) {
+    Antena* efeitos = NULL;
+    for(Antena* a1 = lista; a1 != NULL; a1 = a1->prox) {
+        for(Antena* a2 = lista; a2 != NULL; a2 = a2->prox) {
+            if(a1 != a2 && a1->frequencia == a2->frequencia) {
+                // Calculo geometrico das interferencias
+            }
+        }
+    }
+    return efeitos;
+}
+\end{lstlisting}
+
+\chapter{Análise de Resultados}
+\section{Casos de Teste e Validação}
+Para validação do sistema, considerou-se um mapa padrão de 12x12 células com diferentes configurações de antenas. Os resultados demonstram a correta aplicação dos algoritmos de deteção de interferência e gestão dinâmica da estrutura de dados.
+
+\subsection{Carregamento Inicial do Mapa}
+\begin{lstlisting}[caption={Estado inicial do mapa carregado},label={lst:mapa_inicial},basicstyle=\ttfamily\small]
+............
+........0...
+.....0......
+.......0....
+....0.......
+......A.....
+............
+............
+........A...
+.........A..
+............
+............
+\end{lstlisting}
+
+A lista de antenas carregadas é apresentada conforme:
+
+\begin{lstlisting}[caption={Antenas identificadas no mapa inicial},label={lst:antenas_inicial},basicstyle=\ttfamily\small]
+Antena: 0 (4, 4)
+Antena: 0 (5, 2)
+Antena: A (6, 5)
+Antena: 0 (7, 3)
+Antena: 0 (8, 1)
+Antena: A (8, 8)
+Antena: A (9, 9)
+\end{lstlisting}
+
+\subsection{Deteção de Interferências}
+Como demonstrado na Listagem, o algoritmo identificou 10 pontos críticos de interferência, distribuídos de forma simétrica em relação às antenas de mesma frequência. Esta distribuição condiz com os princípios teóricos de propagação electromagnética, onde cada par de antenas com frequência idêntica (0 e A no caso analisado) gera padrões de interferência característicos nas direções cardinais e diagonais.
+
+\begin{lstlisting}[caption={Pontos de interferência detectados},label={lst:interferencias},basicstyle=\ttfamily\small]
+Efeito: # (1, 5)
+Efeito: # (2, 3)
+Efeito: # (3, 1)
+Efeito: # (3, 6)
+Efeito: # (6, 0)
+Efeito: # (7, 7)
+Efeito: # (9, 4)
+Efeito: # (10, 2)
+Efeito: # (10, 10)
+Efeito: # (11, 0)
+\end{lstlisting}
+
+\subsection{Operações Dinâmicas}
+O sistema demonstrou robustez nas operações de atualização dinâmica, conforme ilustrado na Listagem. A remoção automática de antenas em zonas de interferência preservou a integridade dos dados, prevenindo colisões sem afetar o desempenho geral, com complexidade média de \(O(m)\) para \(m\) efeitos nefastos.
+
+A inserção das antenas adicionais revelou:
+\begin{itemize}
+    \item Tempo constante (\(O(1)\)) para inserções em posições não críticas
+    \item Verificação automática de duplicados durante a inserção
+    \item Atualização imediata dos relacionamentos de interferência
+\end{itemize}
+
+\begin{lstlisting}[caption={Estado final após operações},label={lst:operacoes},basicstyle=\ttfamily\small]
+[REMOVIDO] Antena 0 em (2,3) em localizacao de efeito nefasto
+[REMOVIDO] Antena 0 em (10,10) em localizacao de efeito nefasto
+
+Antenas apos remocao:
+Antena: 0 (4, 4)
+Antena: 0 (5, 2)
+Antena: 0 (7, 3)
+Antena: 0 (8, 1)
+Antena: 0 (8, 2)
+Antena: A (8, 8)
+Antena: A (9, 9)
+\end{lstlisting}
+
+\section{Visualização Gráfica}
+\begin{figure}[H]
+\begin{lstlisting}[caption={Mapa final com interferências},label={lst:mapa_final},basicstyle=\ttfamily\small]
+......#....#
+...#....0...
+.....0..0.#.
+..#....0....
+....0....#..
+.#..........
+...#........
+.......#....
+........A...
+.........A..
+..........#.
+............
+\end{lstlisting}
+\label{fig:mapa_final}
+\end{figure}
+
+Esta visualização comprova que:
+\begin{itemize}
+    \item As zonas de interferência (\#) não sobrepõem antenas existentes
+    \item A remoção automática preveniu colisões em (2,3) e (10,10)
+    \item A estrutura de dados mantém integridade após múltiplas operações
+\end{itemize}
+
+\chapter{Conclusão}
+O trabalho desenvolvido demonstrou a viabilidade da utilização de listas ligadas para gestão eficiente de redes de antenas. A solução implementada atinge os objetivos propostos, mostrando-se adequada para cenários de média dimensão. Como trabalho futuro, sugere-se a implementação de estruturas espaciais hierárquicas para otimização de consultas.
+
+\chapter*{Repositório GitHub}
+\addcontentsline{toc}{chapter}{Repositório GitHub}
+\label{chap:github}
+
+O código fonte completo deste projeto está disponível publicamente no repositório:
+
+\begin{center}
+\url{https://github.com/FrozenProduction/TP_EDA_Fase1}
+\end{center}
+
+O repositório contém:
+\begin{itemize}
+\item Implementação completa em C com documentação Doxygen
+\item Ficheiros de teste com diferentes configurações de mapas
+\item Histórico de commits detalhado
+\item Instruções de compilação e execução
+\item Versão PDF deste relatório
+\end{itemize}
+
+\end{document}

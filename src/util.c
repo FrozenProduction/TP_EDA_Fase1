@@ -1,145 +1,118 @@
 /**
  * @file util.c
- * @brief Implementação das funções auxiliares para manipulação de mapas e antenas
+ * @brief Implementação das funções utilitárias para manipulação de mapas
+ * 
+ * @details Contém a implementação concreta das operações de:
+ * - Carregamento de ficheiros para estruturas de dados
+ * - Renderização gráfica do estado do sistema
  * 
  * @author Diogo Pereira
- * @date 30/03/2025
- * @version 1.0
+ * @date 11/04/2025
+ * @version 1.1
  * 
- * @course Licenciatura em Engenharia de Sistemas Informáticos EST-IPCA
+ * @copyright Copyright (c) 2025
  * 
- * Contém a implementação das operações de:
- * - Carregamento/libertação de mapas
- * - Conversão entre estruturas de dados
- * - Processamento de ficheiros
+ * @course Licenciatura em Engenharia de Sistemas Informáticos
+ * @institution EST-IPCA
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "util.h"
-#include "lista_ligada.h"
-
-/**
- * @brief Carrega um mapa a partir de um ficheiro de texto
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include "util.h"
+ #include "funcoes.h"
+ 
+ /**
+ * @brief Implementação do carregamento de mapas
  * 
- * @param filename Nome do ficheiro contendo o mapa
- * @return Mapa* Estrutura alocada com o mapa carregado
- * @retval NULL Se o ficheiro não existir ou for inválido
+ * @param[in] filename Nome do ficheiro de entrada
+ * @param[out] linhas Apontador para armazenar número de linhas
+ * @param[out] colunas Apontador para armazenar número de colunas
+ * @return Antena* Lista de antenas carregadas
  * 
- * @note Formato esperado do ficheiro:
+ * @note Formato do ficheiro esperado:
  *       Linha 1: "<linhas> <colunas>"
- *       Linhas seguintes: linhas do mapa ('.' para vazio, caracteres para antenas)
+ *       Linhas seguintes: linhas do mapa
+ * 
+ * @note Caracteres '.' são considerados espaços vazios
  */
-Mapa* carregarMapa(const char* filename) {
+Antena* carregarAntenasDoMapa(const char* filename, int* linhas, int* colunas) {
     FILE *file = fopen(filename, "r");
-    if (!file) return NULL;
-    
-    Mapa* mapa = (Mapa*)malloc(sizeof(Mapa));
-    fscanf(file, "%d %d", &mapa->linhas, &mapa->colunas);
-    
-    mapa->matriz = (char**)malloc(mapa->linhas * sizeof(char*));
-    for (int i = 0; i < mapa->linhas; i++) {
-        mapa->matriz[i] = (char*)malloc((mapa->colunas + 1) * sizeof(char));
-        fscanf(file, "%s", mapa->matriz[i]);
+    if (!file) {
+        fprintf(stderr, "Erro: Não foi possível abrir o ficheiro %s\n", filename);
+        exit(EXIT_FAILURE);
     }
-    fclose(file);
-    return mapa;
-}
 
-/**
- * @brief Liberta a memória alocada para um mapa
- * 
- * @param mapa Apontador para a estrutura Mapa a libertar
- * 
- * @note Liberta toda a memória associada à matriz
- */
-void liberarMapa(Mapa* mapa) {
-    if (!mapa) return;
-    
-    for (int i = 0; i < mapa->linhas; i++) {
-        free(mapa->matriz[i]);
+    /* Leitura das dimensões do mapa */
+    if (fscanf(file, "%d %d", linhas, colunas) != 2) {
+        fclose(file);
+        fprintf(stderr, "Erro: Formato inválido no ficheiro %s\n", filename);
+        exit(EXIT_FAILURE);
     }
-    free(mapa->matriz);
-    free(mapa);
-}
 
-/**
- * @brief Extrai antenas de um mapa e adiciona-as a uma lista ligada
- * 
- * @param filename Nome do ficheiro contendo o mapa
- * @param[out] lista Apontador para a lista ligada de destino
- * 
- * @note Ignora caracteres '.' (posições vazias)
- * @note Mantém as coordenadas originais (linha, coluna)
- */
-void carregarAntenasDoMapa(const char* filename, Antena** lista) {
-    Mapa* mapa = carregarMapa(filename);
-    if (!mapa) return;
-
-    for (int i = 0; i < mapa->linhas; i++) {
-        for (int j = 0; j < mapa->colunas; j++) {
-            char c = mapa->matriz[i][j];
-            if (c != '.') {
-                inserirAntena(lista, c, i, j);  // i=linha, j=coluna
+    Antena* lista = NULL;
+    char linha[256];
+    int y = 0;
+    
+    /* Processamento linha a linha */
+    while (fscanf(file, "%s", linha) == 1 && y < *linhas) {
+        for (int x = 0; x < *colunas && x < (int)strlen(linha); x++) {
+            if (linha[x] != '.') {
+                lista = inserirAntena(lista, linha[x], x, y);
             }
         }
+        y++;
     }
-    liberarMapa(mapa);
-}
-
-/**
- * @brief Salva um mapa com marcações de efeitos nefastos
- * 
- * @param filename Nome do ficheiro de saída
- * @param mapa Estrutura Mapa original
- * @param efeitos Lista de posições com efeitos nefastos
- * 
- * @note Formato de saída idêntico ao de entrada
- * @note Marca posições com efeitos usando o carácter '#'
- * @note Sobrescreve o ficheiro se já existir
- */
-void salvarMapaComEfeitos(const char* filename, Mapa* mapa, Antena* efeitos) {
-    // Criar cópia do mapa original
-    Mapa* mapaComEfeitos = (Mapa*)malloc(sizeof(Mapa));
-    mapaComEfeitos->linhas = mapa->linhas;
-    mapaComEfeitos->colunas = mapa->colunas;
     
-    // Alocar e copiar matriz
-    mapaComEfeitos->matriz = (char**)malloc(mapaComEfeitos->linhas * sizeof(char*));
-    for (int i = 0; i < mapaComEfeitos->linhas; i++) {
-        mapaComEfeitos->matriz[i] = (char*)malloc((mapaComEfeitos->colunas + 1) * sizeof(char));
-        for (int j = 0; j < mapaComEfeitos->colunas; j++) {
-            mapaComEfeitos->matriz[i][j] = mapa->matriz[i][j];
-        }
-        mapaComEfeitos->matriz[i][mapaComEfeitos->colunas] = '\0';
-    }
-
-     // Aplicar efeitos
-    for (Antena* temp = efeitos; temp != NULL; temp = temp->prox) {
-        int x = temp->x;
-        int y = temp->y;
-        if (x >= 0 && x < mapaComEfeitos->linhas && y >= 0 && y < mapaComEfeitos->colunas) {
-            mapaComEfeitos->matriz[x][y] = '#';
-        }
-    }
-
-    // Escrever no ficheiro
-    FILE *file = fopen(filename, "w");
-    if (file == NULL) {
-        printf("Erro ao criar ficheiro %s\n", filename);
+    fclose(file);
+    return lista;
+}
+ 
+/**
+ * @brief Implementação da renderização do mapa
+ * 
+ * @param[in] antenas Lista de antenas ativas
+ * @param[in] efeitos Lista de zonas de interferência (pode ser NULL)
+ * @param[in] linhas Número total de linhas do mapa
+ * @param[in] colunas Número total de colunas do mapa
+ * 
+ * @note Prioridade de renderização:
+ *       1. Antenas normais
+ *       2. Zonas de interferência
+ *       3. Espaços vazios ('.')
+ */
+void imprimirMapa(Antena* antenas, Antena* efeitos, int linhas, int colunas) {
+    /* Validação de parâmetros */
+    if (linhas <= 0 || colunas <= 0) {
+        fprintf(stderr, "Erro: Dimensões inválidas do mapa\n");
         return;
     }
 
-    fprintf(file, "%d %d\n", mapaComEfeitos->linhas, mapaComEfeitos->colunas);
-    for (int i = 0; i < mapaComEfeitos->linhas; i++) {
-        fprintf(file, "%s\n", mapaComEfeitos->matriz[i]);
+    /* Renderização do mapa */
+    for (int y = 0; y < linhas; y++) {
+        for (int x = 0; x < colunas; x++) {
+            char c = '.';
+            
+            /* Verifica antenas primeiro */
+            for (Antena* a = antenas; a != NULL; a = a->prox) {
+                if (a->x == x && a->y == y) {
+                    c = a->frequencia;
+                    break;
+                }
+            }
+            
+            /* Verifica efeitos se necessário */
+            if (c == '.' && efeitos != NULL) {
+                for (Antena* e = efeitos; e != NULL; e = e->prox) {
+                    if (e->x == x && e->y == y) {
+                        c = '#';
+                        break;
+                    }
+                }
+            }
+            
+            printf("%c", c);
+        }
+        printf("\n");
     }
-    fclose(file);
-
-    // Liberar memória
-    for (int i = 0; i < mapaComEfeitos->linhas; i++) {
-        free(mapaComEfeitos->matriz[i]);
-    }
-    free(mapaComEfeitos->matriz);
-    free(mapaComEfeitos);
 }
